@@ -1,0 +1,205 @@
+name: Validate Skills
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate all skill directories have SKILL.md
+        run: |
+          echo "Checking that all skill directories contain SKILL.md..."
+          MISSING=0
+          SKILL_COUNT=0
+
+          # Find all subdirectories under skills/ (excluding hidden dirs)
+          for skill_dir in skills/*/; do
+            # Skip if not a directory or if it's a hidden directory
+            [ -d "$skill_dir" ] || continue
+            [[ "$(basename "$skill_dir")" == .* ]] && continue
+
+            skill_name=$(basename "$skill_dir")
+            SKILL_COUNT=$((SKILL_COUNT + 1))
+
+            if [ ! -f "${skill_dir}SKILL.md" ]; then
+              echo "✗ Missing SKILL.md in: $skill_name/"
+              MISSING=1
+            else
+              echo "✓ Found SKILL.md in: $skill_name/"
+            fi
+          done
+
+          if [ $SKILL_COUNT -eq 0 ]; then
+            echo ""
+            echo "Error: No skill directories found in skills/"
+            exit 1
+          fi
+
+          if [ $MISSING -eq 1 ]; then
+            echo ""
+            echo "Error: Some skill directories are missing SKILL.md"
+            exit 1
+          fi
+
+          echo ""
+          echo "✓ All $SKILL_COUNT skill directories contain SKILL.md"
+
+      - name: Validate YAML frontmatter
+        run: |
+          echo "Validating YAML frontmatter in SKILL.md files..."
+          INVALID=0
+
+          for file in skills/*/SKILL.md; do
+            # Check if file starts with ---
+            if ! head -n 1 "$file" | grep -q "^---$"; then
+              echo "✗ Invalid frontmatter in $file (missing opening ---)"
+              INVALID=1
+              continue
+            fi
+
+            # Check if frontmatter closes with ---
+            if ! head -n 5 "$file" | tail -n +2 | grep -q "^---$"; then
+              echo "✗ Invalid frontmatter in $file (missing closing ---)"
+              INVALID=1
+              continue
+            fi
+
+            # Check for required fields
+            if ! head -n 5 "$file" | grep -q "^name:"; then
+              echo "✗ Missing 'name:' field in $file"
+              INVALID=1
+              continue
+            fi
+
+            if ! head -n 5 "$file" | grep -q "^description:"; then
+              echo "✗ Missing 'description:' field in $file"
+              INVALID=1
+              continue
+            fi
+
+            echo "✓ Valid frontmatter: $file"
+          done
+
+          if [ $INVALID -eq 1 ]; then
+            echo ""
+            echo "Error: Some SKILL.md files have invalid frontmatter"
+            exit 1
+          fi
+
+          echo ""
+          echo "✓ All SKILL.md files have valid frontmatter"
+
+      - name: Validate status field
+        run: |
+          echo "Validating status field in SKILL.md frontmatter..."
+          INVALID=0
+
+          for file in skills/*/SKILL.md; do
+            # Extract status field from frontmatter
+            status=$(sed -n '/^---$/,/^---$/p' "$file" | grep '^status:' | cut -d: -f2 | tr -d ' ' || true)
+
+            if [ -z "$status" ]; then
+              echo "✗ Missing 'status:' field in $file"
+              INVALID=1
+              continue
+            fi
+
+            if [ "$status" != "stable" ] && [ "$status" != "wip" ]; then
+              echo "✗ Invalid status '$status' in $file (must be 'stable' or 'wip')"
+              INVALID=1
+              continue
+            fi
+
+            echo "✓ Valid status '$status': $file"
+          done
+
+          if [ $INVALID -eq 1 ]; then
+            echo ""
+            echo "Error: Some SKILL.md files have invalid or missing status field"
+            exit 1
+          fi
+
+          echo ""
+          echo "✓ All SKILL.md files have valid status field"
+
+      - name: Validate script executability
+        run: |
+          echo "Checking script permissions..."
+          INVALID=0
+
+          for script in scripts/*.sh; do
+            if [ ! -x "$script" ]; then
+              echo "✗ Not executable: $script"
+              INVALID=1
+            else
+              echo "✓ Executable: $script"
+            fi
+          done
+
+          if [ $INVALID -eq 1 ]; then
+            echo ""
+            echo "Error: Some scripts are not executable"
+            echo "Fix with: chmod +x scripts/*.sh"
+            exit 1
+          fi
+
+          echo ""
+          echo "✓ All scripts are executable"
+
+      - name: Validate referenced Python scripts exist
+        run: |
+          echo "Checking for referenced Python scripts in skills..."
+          MISSING=0
+
+          for skill_dir in skills/*/; do
+            [ -d "$skill_dir" ] || continue
+            [[ "$(basename "$skill_dir")" == .* ]] && continue
+
+            skill_name=$(basename "$skill_dir")
+
+            # Find Python script references in SKILL.md (e.g., hook scripts)
+            if [ -f "${skill_dir}SKILL.md" ]; then
+              # Look for references to .py files in the skill directory
+              # Pattern: references to ./script.py or skill-name/script.py
+              grep -oE '\./[a-zA-Z0-9_-]+\.py|'"$skill_name"'/[a-zA-Z0-9_-]+\.py' "${skill_dir}SKILL.md" 2>/dev/null | while read -r script_ref; do
+                # Convert reference to actual path
+                script_path="${skill_dir}$(basename "$script_ref")"
+
+                if [ ! -f "$script_path" ]; then
+                  echo "✗ Referenced script missing: $script_path (referenced in $skill_name/SKILL.md)"
+                  MISSING=1
+                fi
+              done
+            fi
+          done
+
+          if [ $MISSING -eq 1 ]; then
+            echo ""
+            echo "Error: Some referenced scripts are missing"
+            exit 1
+          fi
+
+          echo "✓ All referenced Python scripts exist (or none referenced)"
+
+      - name: Summary
+        if: success()
+        run: |
+          echo ""
+          echo "=========================================="
+          echo "✓ All validation checks passed!"
+          echo "=========================================="
+          echo ""
+          echo "Validated:"
+          echo "- All skill directories contain SKILL.md"
+          echo "- All frontmatter is valid"
+          echo "- All status fields are valid (stable or wip)"
+          echo "- All scripts are executable"
+          echo "- All referenced Python scripts exist"
