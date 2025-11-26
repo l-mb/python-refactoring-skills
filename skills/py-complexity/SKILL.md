@@ -21,7 +21,7 @@ Effective use of context windows.
 
 ## Required Tools
 
-**Install to project venv**: `uv pip install radon lizard xenon wily`
+**Add to `[dependency-groups]` dev**: `"radon"`, `"lizard"`, `"xenon"`, `"wily"`
 
 - **radon**: Cyclomatic complexity & maintainability index
 - **lizard**: Cognitive complexity (better for readability)
@@ -39,8 +39,7 @@ lizard -C 15 .               # Cognitive complexity warnings
 radon mi . -n B              # Maintainability index <65
 wily build .                 # Initialize tracking (one-time)
 wily diff HEAD~10            # Compare trends
-wc -l                        # Number of files
-sccount --dryness --no-cocomo --by-file --ci --gen # scc count tool, if available on host
+scc --by-file --ci           # Optional: code statistics (called 'sccount' on openSUSE)
 ```
 
 ### Thresholds

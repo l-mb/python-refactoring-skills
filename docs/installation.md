@@ -93,36 +93,43 @@ Skills use various Python tools for code analysis. Each skill will automatically
 
 ### Recommended: Per-Project Installation (Default)
 
-Each skill automatically ensures tools are installed in the project's venv:
+Add tools to your project's `pyproject.toml` dev dependencies (PEP 735):
+
+```toml
+[dependency-groups]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.0",
+    "basedpyright>=1.0",
+    "pytest>=8.0",
+    "pytest-cov>=4.0",
+    "pre-commit>=3.0",
+    # Add analysis tools as needed:
+    "radon", "vulture", "pylint", "bandit", "lizard",
+    "mutmut", "wily", "xenon", "pyupgrade", "coverage",
+]
+```
+
+Then install with uv:
 
 ```bash
-# When working on a project, ensure you have/activate a venv
 cd /path/to/your/project
+uv sync                      # Creates venv and installs dev group automatically
+source .venv/bin/activate    # Activate for manual tool use
+```
 
-# Create venv if needed (using uv - recommended)
-uv venv  # Creates .venv by default
+**Alternative: Quick install** (doesn't persist to pyproject.toml):
 
-# Fallback if uv not available
-# python -m venv venv
-
-# Activate it
-source .venv/bin/activate  # Linux/macOS (uv default)
-# or: source venv/bin/activate  # if using python -m venv
-# or: .venv\Scripts\activate  # Windows
-
-# Skills will install tools automatically when invoked
-# Or manually pre-install all analysis tools (using uv - recommended):
-uv pip install radon vulture pylint bandit lizard pytest-cov mutmut wily xenon pyupgrade ruff mypy basedpyright
-
-# Fallback if uv not available:
-# pip install radon vulture pylint bandit lizard pytest-cov mutmut wily xenon pyupgrade ruff mypy basedpyright
+```bash
+uv venv && source .venv/bin/activate
+uv pip install radon vulture pylint bandit lizard pytest-cov mutmut wily xenon pyupgrade ruff mypy basedpyright pre-commit coverage
 ```
 
 **Benefits**:
 - **Isolation**: Different projects can use different tool versions
 - **No conflicts**: Tools don't interfere with system Python
-- **Project-specific**: Tool versions tracked in project dependencies
-- **Reproducible**: Other developers get same tool versions
+- **Project-specific**: Tool versions tracked in pyproject.toml
+- **Reproducible**: Other developers get same tools via `uv sync`
 
 ### Alternative: Global Installation
 
@@ -130,10 +137,10 @@ Only use global installation if you have a single Python version across all proj
 
 ```bash
 # Install globally with uv (faster, recommended)
-uv pip install radon vulture pylint bandit lizard pytest-cov mutmut wily xenon pyupgrade ruff mypy basedpyright
+uv pip install radon vulture pylint bandit lizard pytest-cov mutmut wily xenon pyupgrade ruff mypy basedpyright pre-commit coverage
 
 # Fallback with pip
-# pip install --user radon vulture pylint bandit lizard pytest-cov mutmut wily xenon pyupgrade ruff mypy basedpyright
+# pip install --user radon vulture pylint bandit lizard pytest-cov mutmut wily xenon pyupgrade ruff mypy basedpyright pre-commit coverage
 
 # Or via your Linux distribution's package manager (best for global install)
 # e.g., on openSUSE: sudo zypper install python3-pytest python3-ruff python3-mypy

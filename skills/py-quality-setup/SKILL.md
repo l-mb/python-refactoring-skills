@@ -18,7 +18,7 @@ Configure comprehensive linting and type checking for Python 3.13 projects follo
 
 ## Required Tools
 
-**Install to project venv**: `uv pip install ruff mypy basedpyright pytest pytest-cov`
+**Add to `[dependency-groups]` dev**: `"ruff"`, `"mypy"`, `"basedpyright"`, `"pytest"`, `"pytest-cov"`
 
 - **ruff**: Fast linter and formatter (Rust-based, replaces black, isort, flake8)
 - **mypy**: Standard Python type checker
@@ -36,13 +36,17 @@ Must include these sections:
 [project]
 requires-python = ">=3.13"
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "pytest>=7.0",
+    "pytest>=8.0",
     "pytest-cov>=4.0",
-    "ruff>=0.7.0",
+    "ruff>=0.8.0",
     "mypy>=1.0",
     "basedpyright>=1.0",
+    "pre-commit>=3.0",
+    # Analysis tools (add as needed for py-* skills):
+    # "radon", "vulture", "pylint", "bandit", "lizard",
+    # "mutmut", "wily", "xenon", "pyupgrade", "coverage",
 ]
 
 [tool.ruff]
@@ -129,9 +133,12 @@ A.When using `pyrightconfig.json` for multi-package projects, REMOVE the `tool.b
 3. **Install tools in venv**
    ```bash
    # Using uv (recommended):
+   uv sync                      # Creates venv and installs dev group automatically
+
+   # Or manually:
    uv venv
    source .venv/bin/activate
-   uv pip install -e ".[dev]"
+   uv sync --group dev
 
    # Fallback if uv not available:
    # python -m venv venv

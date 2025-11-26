@@ -36,13 +36,15 @@ Follow this impact-based prioritization:
 ### Phase 1: Setup (if needed)
 
 ```
-1. Activate venv: source .venv/bin/activate (or create: uv venv)
-
-2. If quality tools not configured (pyproject.toml):
+1. If quality tools not configured (pyproject.toml):
    → Invoke: py-quality-setup
 
-3. Install analysis tools:
-   uv pip install radon vulture pylint bandit lizard pytest-cov mutmut wily
+2. Add analysis tools to [dependency-groups] dev in pyproject.toml:
+   "radon", "vulture", "pylint", "bandit", "lizard",
+   "pytest-cov", "mutmut", "wily", "ruff", "mypy", "basedpyright"
+
+3. Install and activate:
+   uv sync && source .venv/bin/activate
 ```
 
 ### Phase 2: Comprehensive Analysis

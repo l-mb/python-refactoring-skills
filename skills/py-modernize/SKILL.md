@@ -19,7 +19,7 @@ Upgrade Python projects to use modern tooling, syntax, and patterns following En
 ## Required Tools
 
 **Install uv globally** (via package manager): `sudo zypper install uv` or `pip install --user uv`
-**Install to project venv**: `uv pip install pyupgrade ruff`
+**Add to `[dependency-groups]` dev**: `"pyupgrade"`, `"ruff"`
 
 - **uv**: Fast package installer (pip replacement)
 - **pyupgrade**: Auto-upgrade syntax to newer Python

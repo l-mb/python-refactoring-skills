@@ -74,21 +74,16 @@ cp -r skills/* ~/.claude/skills/                                                
 3. **Install Python analysis tools** (per-project):
 
 Skills install analysis tools into your project's virtual environment automatically.
-Alternatively, pre-install them:
+To pre-install, add to your `pyproject.toml`:
 
-```bash
-# Activate your project's venv
-cd /path/to/your/project
-source venv/bin/activate  # or: source .venv/bin/activate
-
-# Install analysis tools (using uv - recommended)
-uv pip install radon vulture pylint bandit lizard pytest-cov mutmut wily xenon pyupgrade
-
-# Fallback if uv not available
-# pip install radon vulture pylint bandit lizard pytest-cov mutmut wily xenon pyupgrade
+```toml
+[dependency-groups]
+dev = ["radon", "vulture", "pylint", "bandit", "lizard", "pytest-cov", "mutmut", "wily", "xenon", "pyupgrade", "ruff", "mypy", "basedpyright", "pre-commit"]
 ```
 
-**Note**: Tools are installed per-project, not globally. This ensures isolation and allows different projects to use different tool versions.
+Then run: `uv sync && source .venv/bin/activate`
+
+**Note**: Tools are tracked in pyproject.toml for reproducibility. See [docs/installation.md](docs/installation.md) for details.
 
 ### Basic Usage
 

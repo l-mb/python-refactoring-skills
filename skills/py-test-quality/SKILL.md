@@ -18,8 +18,8 @@ Measure test coverage and verify test suite effectiveness using coverage analysi
 
 ## Required Tools
 
-**Install to project venv**: `uv pip install pytest pytest-cov mutmut coverage[toml]`
-**Optional**: `uv pip install cosmic-ray` (advanced mutation testing)
+**Add to `[dependency-groups]` dev**: `"pytest"`, `"pytest-cov"`, `"mutmut"`, `"coverage"`
+**Optional**: `"cosmic-ray"` (advanced mutation testing)
 
 - **pytest-cov**: Code coverage measurement
 - **mutmut**: Mutation testing - verifies tests catch bugs

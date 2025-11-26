@@ -18,10 +18,7 @@ Configure git pre-commit hooks using the pre-commit framework to enforce code qu
 
 ## Required Tools
 
-**Install to project venv**:
-```bash
-uv pip install pre-commit ruff mypy basedpyright
-```
+**Add to `[dependency-groups]` dev**: `"pre-commit"`, `"ruff"`, `"mypy"`, `"basedpyright"`
 
 - **pre-commit**: Hook management framework (required)
 - **ruff**: Fast linter with auto-fix capability
@@ -112,7 +109,7 @@ If not configured, add to `~/.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$PROJECT_DIR\" && source .venv/bin/activate 2>/dev/null; ruff check --fix \"$FILE_PATH\" && ruff format \"$FILE_PATH\""
+            "command": "cd \"$PROJECT_DIR\" && source .venv/bin/activate 2>/dev/null && ruff check --fix \"$FILE_PATH\" && ruff format \"$FILE_PATH\""
           }
         ]
       }

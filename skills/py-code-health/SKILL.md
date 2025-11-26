@@ -18,7 +18,7 @@ Remove dead code and consolidate duplication to keep codebase clean and maintain
 
 ## Required Tools
 
-**Install to project venv**: `uv pip install vulture pylint`
+**Add to `[dependency-groups]` dev**: `"vulture"`, `"pylint"`
 
 - **vulture**: AST-based dead code detection
 - **pylint**: Duplicate code detection

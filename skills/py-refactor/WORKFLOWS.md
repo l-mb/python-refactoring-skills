@@ -114,9 +114,9 @@ Targeted workflows for specific refactoring scenarios. For comprehensive refacto
 
 ```
 1. Setup (one-time):
-   Create/activate venv: uv venv && source .venv/bin/activate
    → py-quality-setup: Configure ruff, mypy, basedpyright
-   Install tools: uv pip install radon vulture pylint bandit lizard pytest-cov mutmut wily
+   Add tools to [dependency-groups] dev: radon, vulture, pylint, bandit, lizard, pytest-cov, mutmut, wily
+   Install: uv sync && source .venv/bin/activate
 
 2. Baseline analysis:
    Run all scanners, save to reports/

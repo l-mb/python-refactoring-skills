@@ -19,7 +19,7 @@ Find and fix security vulnerabilities in Python code following Engineering Chart
 
 ## Required Tools
 
-**Install to project venv**: `uv pip install bandit ruff`
+**Add to `[dependency-groups]` dev**: `"bandit"`, `"ruff"`
 
 - **bandit**: AST-based security scanner
 - **ruff --select S**: Built-in Bandit rules (faster alternative)
