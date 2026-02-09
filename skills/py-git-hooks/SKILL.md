@@ -109,7 +109,7 @@ If not configured, add to `~/.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$PROJECT_DIR\" && source .venv/bin/activate 2>/dev/null && ruff check --fix \"$FILE_PATH\" && ruff format \"$FILE_PATH\""
+            "command": "cd \"$PROJECT_DIR\" && source .venv/bin/activate 2>/dev/null && ruff check \"$FILE_PATH\""
           }
         ]
       }
@@ -118,11 +118,12 @@ If not configured, add to `~/.claude/settings.json`:
 }
 ```
 
+**IMPORTANT: Check only, never auto-fix in PostToolUse hooks.** Using `--fix` or `ruff format` in PostToolUse hooks silently modifies files between edits. When adding an import and its usage in two separate edits, `--fix` removes the "unused" import after the first edit, causing the second edit to fail with an undefined name. This creates a chicken-and-egg problem that wastes many retries. Auto-fixing belongs exclusively in the pre-commit hook (Step 2), where all edits are complete.
+
 **Benefits of Claude Code hooks**:
 - Immediate feedback on every edit (faster than waiting for commit)
-- Auto-fix applied in real-time
-- Reduces commit-time failures
 - Catches issues before they accumulate
+- Does not modify files — avoids interference with multi-edit workflows
 
 ## Migration from Manual Hooks
 
@@ -176,11 +177,13 @@ rm .git/hooks/pre-commit.backup
 
 ## Hook Behavior
 
-**Auto-fixable issues (ruff)**:
+**Auto-fixable issues (ruff, pre-commit only)**:
 - Import sorting
 - Trailing whitespace
 - Simple style violations
 - Many code quality issues
+
+Note: `--fix` runs only in pre-commit hooks, never in PostToolUse hooks.
 
 **Blocking issues**:
 - Type errors (mypy/basedpyright)

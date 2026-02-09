@@ -88,6 +88,13 @@ def public_function():
 - Add comment: `# pragma: no cover` or custom marker
 - Accept false positives for public APIs
 
+4. Code that *should* be used, but isn't:
+
+For example, constants, magic numbers, type definitions, or even functions may appear unused. But this may in 
+fact be the issue! (Consider partial refactoring, or other causes.)
+
+Before eliminating apparently dead code, validate that no similar patterns that should reference it exist. If they do, instead fix the call/use sites.
+
 ### Remove Dead Code
 
 ```python
