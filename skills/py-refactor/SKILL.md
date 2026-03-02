@@ -38,6 +38,7 @@ Follow this impact-based prioritization:
 ```
 1. If quality tools not configured (pyproject.toml):
    → Invoke: py-quality-setup
+   (also configures .claude/settings.local.json permissions for all tools)
 
 2. Add analysis tools to [dependency-groups] dev in pyproject.toml:
    "radon", "vulture", "pylint", "bandit", "lizard",

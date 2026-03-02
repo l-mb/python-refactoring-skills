@@ -25,6 +25,8 @@ Configure git pre-commit hooks using the pre-commit framework to enforce code qu
 - **mypy**: Standard Python type checker
 - **basedpyright**: Enhanced type analysis
 
+**Permissions**: Run py-quality-setup first to configure `.claude/settings.local.json` with all needed tool permissions.
+
 ## Setup Workflow
 
 ### Step 1: Check for Existing Hooks

@@ -24,6 +24,8 @@ Find and fix security vulnerabilities in Python code following Engineering Chart
 - **bandit**: AST-based security scanner
 - **ruff --select S**: Built-in Bandit rules (faster alternative)
 
+**Permissions**: Run py-quality-setup first to configure `.claude/settings.local.json` with all needed tool permissions.
+
 ## Discovery Phase
 
 ### Run Security Scanners

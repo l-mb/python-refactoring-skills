@@ -23,6 +23,8 @@ Remove dead code and consolidate duplication to keep codebase clean and maintain
 - **vulture**: AST-based dead code detection
 - **pylint**: Duplicate code detection
 
+**Permissions**: Run py-quality-setup first to configure `.claude/settings.local.json` with all needed tool permissions.
+
 ## Dead Code Detection
 
 ### Find Unused Code

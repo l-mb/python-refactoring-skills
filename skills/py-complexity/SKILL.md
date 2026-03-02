@@ -28,6 +28,8 @@ Effective use of context windows.
 - **xenon**: CI/CD threshold enforcement
 - **wily**: Track trends across git history
 
+**Permissions**: Run py-quality-setup first to configure `.claude/settings.local.json` with all needed tool permissions.
+
 ## Discovery Phase
 
 ### Measure Complexity

@@ -25,6 +25,8 @@ Upgrade Python projects to use modern tooling, syntax, and patterns following En
 - **pyupgrade**: Auto-upgrade syntax to newer Python
 - **ruff**: Modern linter with UP rules
 
+**Permissions**: Run py-quality-setup first to configure `.claude/settings.local.json` with all needed tool permissions.
+
 ## Package Manager: pip → uv
 
 ### Why uv?

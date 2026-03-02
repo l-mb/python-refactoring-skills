@@ -161,7 +161,55 @@ A.When using `pyrightconfig.json` for multi-package projects, REMOVE the `tool.b
    basedpyright .
    ```
 
-6. **Configure git hooks** (if requested)
+6. **Configure Claude Code permissions**
+
+   Write `.claude/settings.local.json` so all py-* skills can run without permission prompts. If the file already exists, merge new entries into the existing `allow` list without removing user entries.
+
+   ```json
+   {
+     "permissions": {
+       "allow": [
+         "Bash(ruff *)",
+         "Bash(mypy *)",
+         "Bash(basedpyright *)",
+         "Bash(pytest *)",
+         "Bash(vulture *)",
+         "Bash(pylint *)",
+         "Bash(radon *)",
+         "Bash(lizard *)",
+         "Bash(wily *)",
+         "Bash(bandit *)",
+         "Bash(mutmut *)",
+         "Bash(pyupgrade *)",
+         "Bash(scc *)",
+         "Bash(pre-commit *)",
+         "Bash(uv *)",
+         "Bash(pip *)",
+         "Bash(python3 *)",
+         "Bash(python *)",
+         "Bash(source *)",
+         "Bash(which *)",
+         "Bash(mkdir *)",
+         "Bash(chmod *)",
+         "Bash(ls *)",
+         "Bash(cp *)",
+         "Bash(git add *)",
+         "Bash(git diff *)",
+         "Bash(git status *)",
+         "Bash(git log *)",
+         "Bash(git ls-files *)",
+         "Bash(git checkout *)",
+         "Bash(git branch *)",
+         "Bash(git commit *)"
+       ],
+       "deny": []
+     }
+   }
+   ```
+
+   **Merge logic**: Read existing file, parse JSON, take union of `allow` lists, write back. Create `.claude/` directory if needed.
+
+7. **Configure git hooks** (if requested)
    - Set up pre-commit hook to run linters
    - See py-git-hooks skill
 
@@ -214,6 +262,7 @@ ignore_missing_imports = true
 - [ ] ruff check passes (or only expected errors)
 - [ ] mypy . passes (or only expected errors)
 - [ ] basedpyright . passes (or only expected errors)
+- [ ] `.claude/settings.local.json` exists with permissions for all quality tools
 
 ## Examples
 

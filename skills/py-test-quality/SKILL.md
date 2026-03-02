@@ -25,6 +25,8 @@ Measure test coverage and verify test suite effectiveness using coverage analysi
 - **mutmut**: Mutation testing - verifies tests catch bugs
 - **cosmic-ray**: Advanced mutation testing (slower)
 
+**Permissions**: Run py-quality-setup first to configure `.claude/settings.local.json` with all needed tool permissions.
+
 ## Coverage Analysis
 
 ### Measure Coverage
