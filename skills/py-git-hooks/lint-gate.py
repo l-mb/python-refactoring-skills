@@ -107,14 +107,14 @@ def main() -> None:
 
     # Prevent infinite loops: if already retrying after a block, allow stop
     if input_data.get("stop_hook_active"):
-        json.dump({"decision": "stop"}, sys.stdout)
+        json.dump({"decision": "approve"}, sys.stdout)
         return
 
     cwd = Path(input_data.get("cwd", ".")).resolve()
     files = get_modified_python_files(cwd)
 
     if not files:
-        json.dump({"decision": "stop"}, sys.stdout)
+        json.dump({"decision": "approve"}, sys.stdout)
         return
 
     venv_prefix = find_venv_activate(cwd)
@@ -137,7 +137,7 @@ def main() -> None:
         )
         json.dump({"decision": "block", "reason": reason}, sys.stdout)
     else:
-        json.dump({"decision": "stop"}, sys.stdout)
+        json.dump({"decision": "approve"}, sys.stdout)
 
 
 if __name__ == "__main__":

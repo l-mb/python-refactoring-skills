@@ -192,7 +192,7 @@ A.When using `pyrightconfig.json` for multi-package projects, REMOVE the `tool.b
          "Bash(mkdir *)",
          "Bash(chmod *)",
          "Bash(ls *)",
-         "Bash(cp *)",
+         "Bash(ln *)",
          "Bash(git add *)",
          "Bash(git diff *)",
          "Bash(git status *)",
@@ -209,7 +209,35 @@ A.When using `pyrightconfig.json` for multi-package projects, REMOVE the `tool.b
 
    **Merge logic**: Read existing file, parse JSON, take union of `allow` lists, write back. Create `.claude/` directory if needed.
 
-7. **Configure git hooks** (if requested)
+7. **Install Stop hook lint gate**
+
+   Symlink the lint gate script so Claude Code runs the full lint suite (ruff, mypy, basedpyright) on modified files before returning to the user. If any linter reports errors, Claude is blocked from stopping and must fix them first.
+
+   ```bash
+   mkdir -p ~/.claude/hooks
+   ln -sf ~/.claude/skills/py-git-hooks/lint-gate.py ~/.claude/hooks/lint-gate.py
+   ```
+
+   Configure the Stop hook in `~/.claude/settings.json` (merge into existing hooks if present):
+
+   ```json
+   {
+     "hooks": {
+       "Stop": [
+         {
+           "hooks": [
+             {
+               "type": "command",
+               "command": "python3 ~/.claude/hooks/lint-gate.py"
+             }
+           ]
+         }
+       ]
+     }
+   }
+   ```
+
+8. **Configure git hooks** (if requested)
    - Set up pre-commit hook to run linters
    - See py-git-hooks skill
 
@@ -263,6 +291,7 @@ ignore_missing_imports = true
 - [ ] mypy . passes (or only expected errors)
 - [ ] basedpyright . passes (or only expected errors)
 - [ ] `.claude/settings.local.json` exists with permissions for all quality tools
+- [ ] `~/.claude/hooks/lint-gate.py` symlinked and Stop hook configured in `~/.claude/settings.json`
 
 ## Examples
 

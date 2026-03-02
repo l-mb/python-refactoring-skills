@@ -97,14 +97,11 @@ pre-commit run
 
 This replaces the older `PostToolUse` approach (which ran ruff after every individual edit, generating noise on intermediate states).
 
-**Install the lint gate script**:
+**Install the lint gate script** (symlink so updates propagate automatically):
 ```bash
 mkdir -p ~/.claude/hooks
-cp ~/.claude/skills/py-git-hooks/lint-gate.py ~/.claude/hooks/lint-gate.py
-chmod +x ~/.claude/hooks/lint-gate.py
+ln -sf ~/.claude/skills/py-git-hooks/lint-gate.py ~/.claude/hooks/lint-gate.py
 ```
-
-If the skill was not installed via symlinks, copy `lint-gate.py` from the skill directory manually.
 
 **Configure the Stop hook** in `~/.claude/settings.json`:
 
@@ -314,7 +311,7 @@ This creates a cross-session feedback loop: each lint gate block teaches Claude 
 **Example: Migrate from PostToolUse to Stop hook**
 ```
 1. Remove PostToolUse ruff hooks from ~/.claude/settings.json
-2. Copy lint-gate.py to ~/.claude/hooks/
+2. Symlink lint-gate.py to ~/.claude/hooks/
 3. Add Stop hook to ~/.claude/settings.json
 4. Verify: make an edit with a ruff error, confirm block-on-stop behavior
 ```

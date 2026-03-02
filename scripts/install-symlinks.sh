@@ -107,8 +107,7 @@ echo "→ Installing hook scripts..."
 echo ""
 if [[ -f "${HOOK_SCRIPT}" ]]; then
 	mkdir -p "${CLAUDE_HOOKS_DIR}"
-	cp "${HOOK_SCRIPT}" "${CLAUDE_HOOKS_DIR}/lint-gate.py"
-	chmod +x "${CLAUDE_HOOKS_DIR}/lint-gate.py"
+	ln -sf "${HOOK_SCRIPT}" "${CLAUDE_HOOKS_DIR}/lint-gate.py"
 	echo "  ✓ lint-gate.py → ${CLAUDE_HOOKS_DIR}/lint-gate.py"
 else
 	echo "  ⊘ lint-gate.py not found (skipped)"
@@ -143,8 +142,8 @@ fi
 # Verify hook script
 echo ""
 echo "Verifying hooks:"
-if [[ -x "${CLAUDE_HOOKS_DIR}/lint-gate.py" ]]; then
-	echo "  ✓ ${CLAUDE_HOOKS_DIR}/lint-gate.py (executable)"
+if [[ -L "${CLAUDE_HOOKS_DIR}/lint-gate.py" ]]; then
+	ls -la "${CLAUDE_HOOKS_DIR}/lint-gate.py"
 else
 	echo "  ⊘ lint-gate.py not installed"
 fi
@@ -155,6 +154,6 @@ echo "1. Test in Claude Code: 'Please list available Python refactoring skills'"
 echo "2. Configure Stop hook in ~/.claude/settings.json (see py-git-hooks skill)"
 echo "3. Read quick start: ${REPO_DIR}/docs/quick-start.md"
 echo ""
-echo "Note: Skills are linked to the repository. Hook scripts are copied."
-echo "To update: cd ${REPO_DIR} && git pull && ./scripts/install-symlinks.sh"
+echo "Note: Skills and hook scripts are linked to the repository."
+echo "To update: cd ${REPO_DIR} && git pull"
 echo ""
