@@ -98,13 +98,29 @@ for skill_dir in "${SKILLS_DIR}"/py-*; do
 done
 
 echo ""
+
+# Install hook scripts
+CLAUDE_HOOKS_DIR="${HOME}/.claude/hooks"
+HOOK_SCRIPT="${SKILLS_DIR}/py-git-hooks/lint-gate.py"
+
+echo "→ Installing hook scripts..."
+echo ""
+if [[ -f "${HOOK_SCRIPT}" ]]; then
+	mkdir -p "${CLAUDE_HOOKS_DIR}"
+	cp "${HOOK_SCRIPT}" "${CLAUDE_HOOKS_DIR}/lint-gate.py"
+	chmod +x "${CLAUDE_HOOKS_DIR}/lint-gate.py"
+	echo "  ✓ lint-gate.py → ${CLAUDE_HOOKS_DIR}/lint-gate.py"
+else
+	echo "  ⊘ lint-gate.py not found (skipped)"
+fi
+echo ""
+
 echo "=========================================="
-echo "✓ Symlinks installed successfully!"
+echo "✓ Installation complete!"
 echo "=========================================="
 echo ""
 if [[ "${WIP_SKIPPED_COUNT}" -gt 0 ]]; then
-	echo "Installed: ${STABLE_COUNT} stable skills"
-	echo "Skipped: ${WIP_SKIPPED_COUNT} WIP skills"
+	echo "Skills: ${STABLE_COUNT} stable installed, ${WIP_SKIPPED_COUNT} WIP skipped"
 	echo ""
 	echo "To install WIP skills: ${REPO_DIR}/scripts/install-symlinks.sh --install-wip"
 	echo ""
@@ -124,12 +140,21 @@ if [[ "${found_symlinks}" == "false" ]]; then
 	echo "  No symlinks found (unexpected)"
 fi
 
+# Verify hook script
+echo ""
+echo "Verifying hooks:"
+if [[ -x "${CLAUDE_HOOKS_DIR}/lint-gate.py" ]]; then
+	echo "  ✓ ${CLAUDE_HOOKS_DIR}/lint-gate.py (executable)"
+else
+	echo "  ⊘ lint-gate.py not installed"
+fi
+
 echo ""
 echo "Next steps:"
 echo "1. Test in Claude Code: 'Please list available Python refactoring skills'"
-echo "2. Read quick start: ${REPO_DIR}/docs/quick-start.md"
-echo "3. Start refactoring!"
+echo "2. Configure Stop hook in ~/.claude/settings.json (see py-git-hooks skill)"
+echo "3. Read quick start: ${REPO_DIR}/docs/quick-start.md"
 echo ""
-echo "Note: Skills are now linked to the repository."
-echo "To update: cd ${REPO_DIR} && git pull"
+echo "Note: Skills are linked to the repository. Hook scripts are copied."
+echo "To update: cd ${REPO_DIR} && git pull && ./scripts/install-symlinks.sh"
 echo ""

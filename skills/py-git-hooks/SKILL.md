@@ -12,7 +12,7 @@ Configure git pre-commit hooks using the pre-commit framework to enforce code qu
 
 1. Install pre-commit framework with Python quality hooks
 2. Migrate any existing manual hooks to pre-commit framework
-3. Configure Claude Code PostToolUse hooks for faster feedback
+3. Configure Claude Code Stop hook lint gate (runs full lint suite before returning to user)
 4. Ensure hooks run incrementally on changed files only
 5. Auto-fix issues where possible, block on critical errors
 
@@ -89,27 +89,32 @@ git add some_file.py
 pre-commit run
 ```
 
-### Step 5: Configure Claude Code Hooks (Recommended)
+### Step 5: Configure Claude Code Stop Hook Lint Gate
 
-**Strongly recommended**: Configure Claude Code PostToolUse hooks to run quality checks after every Edit, providing immediate feedback during development.
+**Strongly recommended**: Configure a Claude Code `Stop` hook that runs the full lint suite (ruff, mypy, basedpyright) on modified Python files before Claude returns control to the user. If any linter reports errors, Claude is blocked from stopping and must fix them first.
 
-Check if hooks are configured:
+This replaces the older `PostToolUse` approach (which ran ruff after every individual edit, generating noise on intermediate states).
+
+**Install the lint gate script**:
 ```bash
-cat ~/.claude/settings.json | grep -A 20 '"hooks"'
+mkdir -p ~/.claude/hooks
+cp ~/.claude/skills/py-git-hooks/lint-gate.py ~/.claude/hooks/lint-gate.py
+chmod +x ~/.claude/hooks/lint-gate.py
 ```
 
-If not configured, add to `~/.claude/settings.json`:
+If the skill was not installed via symlinks, copy `lint-gate.py` from the skill directory manually.
+
+**Configure the Stop hook** in `~/.claude/settings.json`:
 
 ```json
 {
   "hooks": {
-    "PostToolUse": [
+    "Stop": [
       {
-        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$PROJECT_DIR\" && source .venv/bin/activate 2>/dev/null && ruff check \"$FILE_PATH\""
+            "command": "python3 ~/.claude/hooks/lint-gate.py"
           }
         ]
       }
@@ -118,12 +123,22 @@ If not configured, add to `~/.claude/settings.json`:
 }
 ```
 
-**IMPORTANT: Check only, never auto-fix in PostToolUse hooks.** Using `--fix` or `ruff format` in PostToolUse hooks silently modifies files between edits. When adding an import and its usage in two separate edits, `--fix` removes the "unused" import after the first edit, causing the second edit to fail with an undefined name. This creates a chicken-and-egg problem that wastes many retries. Auto-fixing belongs exclusively in the pre-commit hook (Step 2), where all edits are complete.
+**How it works**:
+- Fires once when Claude finishes responding, before the user sees the result
+- Finds modified `.py` files via `git diff` (staged, unstaged, and untracked)
+- **Auto-fix pass**: runs `ruff check --fix` and `ruff format` to silently fix trivial issues (import sorting, whitespace, style)
+- **Check pass**: runs `ruff check`, `mypy`, and `basedpyright` to find remaining unfixable errors
+- If errors remain: returns `{"decision": "block", "reason": "..."}` — Claude sees the lint output and continues working to fix the issues
+- If clean (after auto-fix): returns `{"decision": "stop"}` — Claude returns to the user
+- Loop prevention: if `stop_hook_active` is true in the input (meaning Claude is already retrying after a previous block), the hook allows the stop to prevent infinite loops
+- Gracefully skips tools that aren't installed in the project
 
-**Benefits of Claude Code hooks**:
-- Immediate feedback on every edit (faster than waiting for commit)
-- Catches issues before they accumulate
-- Does not modify files — avoids interference with multi-edit workflows
+**Benefits over PostToolUse hooks**:
+- Runs once per turn instead of after every edit — no noise from intermediate states
+- Auto-fixes trivial issues so Claude only blocks on real errors
+- Runs the full suite (ruff + mypy + basedpyright), not just ruff
+- User always sees a clean codebase when Claude returns
+- Claude learns from the feedback and avoids repeating the same mistakes
 
 ## Migration from Manual Hooks
 
@@ -177,15 +192,13 @@ rm .git/hooks/pre-commit.backup
 
 ## Hook Behavior
 
-**Auto-fixable issues (ruff, pre-commit only)**:
+**Auto-fixable issues** (handled by both pre-commit and the Stop hook lint gate):
 - Import sorting
 - Trailing whitespace
 - Simple style violations
 - Many code quality issues
 
-Note: `--fix` runs only in pre-commit hooks, never in PostToolUse hooks.
-
-**Blocking issues**:
+**Blocking issues** (require Claude or manual intervention):
 - Type errors (mypy/basedpyright)
 - Syntax errors
 - Complex linting violations that can't be auto-fixed
@@ -234,14 +247,55 @@ uv pip install ruff mypy basedpyright
 pre-commit autoupdate
 ```
 
+## Migration from PostToolUse Hooks
+
+If the project was previously set up with `PostToolUse` hooks for ruff (the older approach), migrate to the Stop hook lint gate:
+
+### Step 1: Check for Existing PostToolUse Hooks
+
+```bash
+grep -A 10 '"PostToolUse"' ~/.claude/settings.json
+```
+
+### Step 2: Remove PostToolUse Ruff Hooks
+
+Edit `~/.claude/settings.json` and remove any `PostToolUse` entries that match `Edit|Write|MultiEdit` and run `ruff check`. Keep any non-ruff PostToolUse hooks.
+
+### Step 3: Install Stop Hook
+
+Follow Step 5 in the Setup Workflow above to install `lint-gate.py` and configure the Stop hook.
+
+### Step 4: Verify
+
+Make a Python edit that introduces a ruff error. Confirm that:
+- No feedback appears after the edit itself (PostToolUse hook removed)
+- When Claude finishes responding, the Stop hook fires and blocks with the error
+- Claude fixes the error and returns clean output
+
+## Lint Learning
+
+Claude should learn from lint gate feedback to avoid repeating the same mistakes.
+
+**After being blocked by the lint gate**: note the error pattern. If the same linter rule triggers repeatedly across edits, record it in auto-memory under the `lint-patterns` topic. Format:
+
+```
+- **[rule-code]** (tool): What triggers it and how to avoid it.
+```
+
+**Before editing Python files**: consult auto-memory for known lint pitfalls in this project. Apply those lessons proactively so the lint gate passes on the first try.
+
+This creates a cross-session feedback loop: each lint gate block teaches Claude to write cleaner code next time.
+
 ## Verification Checklist
 
 - [ ] `.pre-commit-config.yaml` exists with ruff, mypy, basedpyright hooks
 - [ ] `pre-commit install` has been run
 - [ ] `pre-commit run --all-files` passes
 - [ ] Any existing manual hooks have been migrated
-- [ ] Claude Code PostToolUse hooks configured (recommended)
-- [ ] Bypass with `--no-verify` works for emergencies
+- [ ] `~/.claude/hooks/lint-gate.py` installed and executable
+- [ ] Claude Code Stop hook configured in `~/.claude/settings.json`
+- [ ] Any old PostToolUse ruff hooks removed from settings
+- [ ] Bypass with `--no-verify` works for emergencies (git pre-commit only)
 
 ## Examples
 
@@ -252,7 +306,15 @@ pre-commit autoupdate
 3. Create .pre-commit-config.yaml with ruff, mypy, basedpyright
 4. Install hooks: pre-commit install
 5. Test: pre-commit run --all-files
-6. Configure Claude Code PostToolUse hooks for real-time feedback
+6. Install lint-gate.py and configure Stop hook in settings.json
+```
+
+**Example: Migrate from PostToolUse to Stop hook**
+```
+1. Remove PostToolUse ruff hooks from ~/.claude/settings.json
+2. Copy lint-gate.py to ~/.claude/hooks/
+3. Add Stop hook to ~/.claude/settings.json
+4. Verify: make an edit with a ruff error, confirm block-on-stop behavior
 ```
 
 **Example: Migrate existing manual hook**
